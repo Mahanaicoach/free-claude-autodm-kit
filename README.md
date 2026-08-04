@@ -1,6 +1,6 @@
-![claude-autodm-kit — Instagram & Facebook comment to DM, set up and run by Claude](assets/social-preview.png)
+![free-claude-autodm-kit — every comment becomes a lead, in 1.4 seconds. Free.](assets/social-preview.png)
 
-# claude-autodm-kit
+# free-claude-autodm-kit
 
 **Someone comments a word on your post. They get a DM with a tappable button. In three
 seconds. For free.**
@@ -17,7 +17,7 @@ No monthly tool. No card. No code you have to read.
 **1.** Open [claude.ai/code](https://claude.ai/code) and clone this repo into it:
 
 ```bash
-git clone https://github.com/Mahanaicoach/claude-autodm-kit && cd claude-autodm-kit
+git clone https://github.com/Mahanaicoach/free-claude-autodm-kit && cd free-claude-autodm-kit
 ```
 
 **2.** Say:

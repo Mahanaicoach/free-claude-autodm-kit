@@ -67,13 +67,38 @@
 
   /* ── left ─────────────────────────────────────────────── */
 
-  .repo {
-    font-family: var(--mono);
-    font-size: 14px;
-    letter-spacing: 0.16em;
-    color: var(--gold);
-    margin-bottom: 30px;
+  /* The badge carries the strongest fact, so it leads and the URL anchors instead. */
+  .badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 12px;
+    background: var(--gold);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 9px 22px 10px;
+    margin-bottom: 28px;
   }
+  .badge .big {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: -0.01em;
+  }
+  .badge .small {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    color: rgba(7, 13, 89, 0.66);
+  }
+
+  .repo {
+    margin-top: 36px;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.11em;
+    color: rgba(246, 245, 245, 0.46);
+  }
+  .repo .slug { color: var(--gold); }
 
   h1 {
     font-family: var(--disp);
@@ -95,17 +120,6 @@
   .sub b { color: var(--paper); font-weight: 600; }
   .sub .arw { padding: 0 0.28em; }
 
-  .meta {
-    margin-top: 34px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 0.07em;
-    color: rgba(246, 245, 245, 0.5);
-  }
-  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--coral); }
 
   /* ── right: the thing itself ──────────────────────────── */
 
@@ -215,20 +229,19 @@
 
   <div class="stage">
     <div>
-      <div class="repo">GITHUB.COM/MAHANAICOACH/CLAUDE-AUTODM-KIT</div>
+      <div class="badge">
+        <span class="big">FREE</span>
+        <span class="small">NO CARD &nbsp;·&nbsp; NO API KEY</span>
+      </div>
 
-      <h1>They comment.<br>They get a DM.<br><span class="hot">In 1.4 seconds.</span></h1>
+      <h1>Every comment<br>becomes a lead.<br><span class="hot">In 1.4 seconds.</span></h1>
 
       <p class="sub">
         Instagram &amp; Facebook comment<span class="arw">→</span>DM,<br>
         <b>set up and run by Claude.</b>
       </p>
 
-      <div class="meta">
-        <span>FREE TIER</span><span class="dot"></span>
-        <span>NO API KEY</span><span class="dot"></span>
-        <span>ZERO DEPENDENCIES</span>
-      </div>
+      <div class="repo">GITHUB.COM/MAHANAICOACH/<span class="slug">FREE-CLAUDE-AUTODM-KIT</span></div>
     </div>
 
     <div class="device">
