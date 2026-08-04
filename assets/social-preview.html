@@ -3,21 +3,26 @@
   Source for assets/social-preview.png (1280×640, GitHub's social preview ratio).
   Regenerate with: node assets/render.mjs
 
-  One aesthetic: a schematic on graph paper. Monospace throughout, hairline rules,
-  a single signal colour. The right half is the product itself — a comment becoming
-  a DM with a button — because that is the whole pitch and it needs no explaining.
+  Brand carried over from ai-skool-course: navy ground on grid paper, coral as the
+  single hot colour, gold for the label, Space Grotesk display over Inter. The right
+  half is a real DM — cream on navy, coral button — because the product is the pitch.
 -->
 <html>
 <head>
 <meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ground: #0B0B0A;
-    --ink: #EDE9E3;
-    --dim: #86827C;
-    --faint: rgba(237, 233, 227, 0.10);
-    --signal: #D97757;
-    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+    --ink:    #070D59;
+    --blue:   #1F3C88;
+    --paper:  #F6F5F5;
+    --coral:  #E46D57;
+    --gold:   #FFC947;
+    --disp:   'Space Grotesk', sans-serif;
+    --body:   'Inter', sans-serif;
+    --mono:   'JetBrains Mono', ui-monospace, Menlo, monospace;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,196 +30,225 @@
   body {
     width: 1280px;
     height: 640px;
-    background: var(--ground);
-    font-family: var(--mono);
-    color: var(--ink);
+    background: var(--ink);
+    font-family: var(--body);
+    color: var(--paper);
     overflow: hidden;
     position: relative;
   }
 
-  /* Graph paper. Hairlines only — no glow, no gradient. */
+  /* Grid paper, the way the course map does it. */
   .grid {
     position: absolute;
     inset: 0;
     background-image:
-      linear-gradient(rgba(237, 233, 227, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(237, 233, 227, 0.035) 1px, transparent 1px);
-    background-size: 32px 32px;
+      linear-gradient(rgba(246, 245, 245, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(246, 245, 245, 0.055) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
-  .frame {
+  /* One gold hairline anchoring the whole composition. */
+  .spine {
     position: absolute;
-    inset: 28px;
-    border: 1px solid var(--faint);
+    left: 0; right: 0; top: 0;
+    height: 6px;
+    background: var(--gold);
   }
 
   .stage {
     position: relative;
     height: 100%;
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 392px;
     align-items: center;
-    gap: 64px;
-    padding: 0 76px;
+    gap: 70px;
+    padding: 0 72px;
   }
 
   /* ── left ─────────────────────────────────────────────── */
 
-  .kicker {
-    font-size: 13px;
-    letter-spacing: 0.22em;
-    color: var(--dim);
-    margin-bottom: 26px;
+  .repo {
+    font-family: var(--mono);
+    font-size: 14px;
+    letter-spacing: 0.16em;
+    color: var(--gold);
+    margin-bottom: 30px;
   }
 
   h1 {
-    font-size: 52px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1;
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 68px;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
   }
-  h1 .sig { color: var(--signal); }
+  h1 .hot { color: var(--coral); }
 
-  .rule {
-    height: 1px;
-    background: var(--faint);
-    margin: 28px 0 24px;
-  }
-
-  /* Breaks are authored, not left to the wrap — the arrow must not start a line. */
-  .lede {
+  /* Authored breaks — "set up" must not split across lines. */
+  .sub {
+    margin-top: 30px;
     font-size: 19px;
-    line-height: 1.65;
-    color: var(--ink);
+    line-height: 1.55;
+    color: rgba(246, 245, 245, 0.72);
     white-space: nowrap;
   }
-  .lede .dim { color: var(--dim); }
+  .sub b { color: var(--paper); font-weight: 600; }
+  .sub .arw { padding: 0 0.28em; }
 
-  .facts {
+  .meta {
     margin-top: 34px;
     display: flex;
-    flex-direction: column;
-    gap: 11px;
-  }
-  .fact {
-    font-size: 15px;
-    color: var(--dim);
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-  }
-  .fact::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    background: var(--signal);
-    flex: none;
-    transform: translateY(-1px);
-  }
-  .fact b { color: var(--ink); font-weight: 500; }
-
-  /* ── right: the product, drawn ────────────────────────── */
-
-  .flow { display: flex; flex-direction: column; align-items: stretch; }
-
-  .card {
-    border: 1px solid var(--faint);
-    background: rgba(237, 233, 227, 0.02);
-    padding: 18px 20px;
-  }
-
-  .who {
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
     font-size: 13px;
-    color: var(--dim);
-    margin-bottom: 9px;
+    letter-spacing: 0.07em;
+    color: rgba(246, 245, 245, 0.5);
   }
-  .comment { font-size: 17px; }
-  .comment .kw {
-    color: var(--signal);
-    border-bottom: 1px solid var(--signal);
-    padding-bottom: 1px;
-  }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--coral); }
 
-  .link {
-    height: 62px;
-    margin-left: 30px;
-    border-left: 1px solid var(--faint);
+  /* ── right: the thing itself ──────────────────────────── */
+
+  .device { position: relative; }
+
+  /* The comment that starts it. */
+  .comment {
+    background: rgba(246, 245, 245, 0.07);
+    border: 1px solid rgba(246, 245, 245, 0.16);
+    border-radius: 12px;
+    padding: 15px 18px;
     display: flex;
     align-items: center;
-    padding-left: 16px;
-    gap: 10px;
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    color: var(--dim);
+    gap: 12px;
+    margin-bottom: 14px;
   }
-  .tick { width: 14px; height: 1px; background: var(--faint); }
+  .avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--blue);
+    border: 1px solid rgba(246, 245, 245, 0.28);
+    flex: none;
+  }
+  .comment .txt { font-size: 15px; color: rgba(246, 245, 245, 0.62); }
+  .comment .kw {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--gold);
+  }
 
-  .dm { border-color: rgba(217, 119, 87, 0.32); }
-  .dm .who { color: var(--signal); }
-  .dm-body {
-    font-size: 16px;
-    line-height: 1.5;
+  .arrow {
+    margin: 0 0 14px 30px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: rgba(246, 245, 245, 0.45);
+  }
+  .arrow .stem { width: 2px; height: 22px; background: var(--coral); }
+
+  /* The DM. Cream on navy so it is the brightest object on the canvas. */
+  .dm {
+    background: var(--paper);
     color: var(--ink);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 14px 14px 0 rgba(0, 0, 0, 0.28);
+  }
+  .dm-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 15px;
     margin-bottom: 16px;
+    border-bottom: 1px solid rgba(7, 13, 89, 0.12);
   }
-
-  .button {
-    border: 1px solid var(--signal);
-    color: var(--signal);
+  .dm-mark {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: var(--coral);
+    flex: none;
+  }
+  .dm-who {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .dm-when {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(7, 13, 89, 0.45);
+  }
+  .dm-body {
+    font-size: 17px;
+    line-height: 1.5;
+    color: rgba(7, 13, 89, 0.88);
+    margin-bottom: 20px;
+  }
+  .cta {
+    background: var(--coral);
+    color: #fff;
+    border-radius: 11px;
     text-align: center;
-    padding: 11px 0;
-    font-size: 14px;
-    letter-spacing: 0.03em;
+    padding: 15px 0;
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.01em;
   }
-
-  .caption {
-    margin-top: 16px;
-    font-size: 12px;
-    letter-spacing: 0.13em;
-    color: var(--dim);
-    text-align: right;
+  .tap {
+    margin-top: 13px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: rgba(7, 13, 89, 0.4);
   }
 </style>
 </head>
 <body>
   <div class="grid"></div>
-  <div class="frame"></div>
+  <div class="spine"></div>
 
   <div class="stage">
     <div>
-      <div class="kicker">GITHUB.COM/MAHANAICOACH</div>
+      <div class="repo">GITHUB.COM/MAHANAICOACH/CLAUDE-AUTODM-KIT</div>
 
-      <h1><span class="sig">claude</span>-autodm-kit</h1>
+      <h1>They comment.<br>They get a DM.<br><span class="hot">In 1.4 seconds.</span></h1>
 
-      <div class="rule"></div>
-
-      <p class="lede">
-        Instagram &amp; Facebook comment&#8202;→&#8202;DM,<br>
-        <span class="dim">set up and run by Claude.</span>
+      <p class="sub">
+        Instagram &amp; Facebook comment<span class="arw">→</span>DM,<br>
+        <b>set up and run by Claude.</b>
       </p>
 
-      <div class="facts">
-        <div class="fact"><span><b>Free tier.</b> No card, no trial clock.</span></div>
-        <div class="fact"><span><b>Buttons, not links.</b> Tappable in Message Requests.</span></div>
-        <div class="fact"><span><b>Zero dependencies.</b> No API key, ever.</span></div>
+      <div class="meta">
+        <span>FREE TIER</span><span class="dot"></span>
+        <span>NO API KEY</span><span class="dot"></span>
+        <span>ZERO DEPENDENCIES</span>
       </div>
     </div>
 
-    <div class="flow">
-      <div class="card">
-        <div class="who">@someone commented</div>
-        <div class="comment"><span class="kw">GUIDE</span></div>
+    <div class="device">
+      <div class="comment">
+        <div class="avatar"></div>
+        <div class="txt">commented <span class="kw">GUIDE</span></div>
       </div>
 
-      <div class="link"><span class="tick"></span> 1.4 SECONDS LATER</div>
+      <div class="arrow"><span class="stem"></span> AUTO-DM FIRES</div>
 
-      <div class="card dm">
-        <div class="who">DIRECT MESSAGE</div>
-        <div class="dm-body">Here's the guide I promised&#8202;—&#8202;no email needed.</div>
-        <div class="button">Get the guide</div>
+      <div class="dm">
+        <div class="dm-head">
+          <div class="dm-mark"></div>
+          <div class="dm-who">Your account</div>
+          <div class="dm-when">now</div>
+        </div>
+        <div class="dm-body">Here's the guide I promised&#8202;—&#8202;no email, no signup.</div>
+        <div class="cta">Get the guide</div>
+        <div class="tap">TAPPABLE IN MESSAGE REQUESTS</div>
       </div>
-
-      <div class="caption">POWERED BY ZERNIO</div>
     </div>
   </div>
 </body>
