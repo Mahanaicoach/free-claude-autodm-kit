@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import { Zernio, ZernioError } from '../lib/zernio.mjs';
 import { loadEnv, readConfig, writeConfig, saveApiKey, ROOT } from '../lib/config.mjs';
 import { validateAutomation, validateIceBreakers, lintAutomation, ValidationError, LIMITS } from '../lib/validate.mjs';
+import { writeDm, triage, isAutoReplySafe, haveClaude } from '../lib/brain.mjs';
 import { c, heading, ok, warn, fail, info, step, table, json, ask, confirm, truncate } from '../lib/ui.mjs';
 
 loadEnv();
@@ -153,6 +154,17 @@ ${c.bold('Automations (comment → DM)')}
   logs <id>                   Every comment that triggered it, with send status
   stats                       Scoreboard across all automations
   templates                   List the ready-made automation recipes
+
+${c.bold('Claude writes and reads for you')}
+  write                       Draft the DM, button and public reply from your offer
+                              --offer "..." --link https://... [--keyword GUIDE] [--create]
+  triage <postId>             Read the comments — question, buying signal, praise, spam —
+                              and draft a public reply for each. Posts nothing.
+  answer <postId>             Post the replies triage judged safe   [--send to actually post]
+
+${c.dim('  These use your logged-in `claude` CLI if there is one, and fall back to keyword')}
+${c.dim('  rules if not. No API key, ever. When Claude Code runs this repo it does the')}
+${c.dim('  thinking itself — `--json` is how it reads the input.')}
 
 ${c.bold('Comments')}
   posts                       Recent posts with comment counts (gives you the post id)
@@ -723,6 +735,185 @@ commands.dm = async ({ positional, flags }) => {
   if (flags.json) return json(res);
   ok(`Private reply sent · message ${res.messageId}`);
   info(c.dim(`One private reply per comment, within ${LIMITS.PRIVATE_REPLY_WINDOW_DAYS} days of it being posted.`));
+};
+
+// ── the Claude layer ──────────────────────────────────────────────────────
+
+/**
+ * Quotes a value for a copy-pasteable shell command. Multi-line DMs use ANSI-C
+ * quoting ($'...\n...') so the command stays on one visual line and the newlines
+ * survive the paste — bash and zsh both handle it.
+ */
+function shellQuote(value) {
+  const s = String(value);
+  if (!s.includes('\n')) return `"${s.replace(/(["\\$`])/g, '\\$1')}"`;
+  return `$'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
+}
+
+commands.write = async ({ flags }) => {
+  if (!flags.offer) {
+    throw new Error(
+      'Usage: autodm write --offer "the free guide to X" --link https://... [--keyword GUIDE] [--caption "..."]'
+    );
+  }
+  const keyword = (flags.keyword || 'GUIDE').toUpperCase();
+  const draft = await writeDm({
+    offer: flags.offer,
+    link: flags.link || 'https://your-link.com',
+    caption: flags.caption,
+    keyword,
+    platform: platformOf(flags),
+  });
+
+  const command = [
+    'node bin/autodm.mjs new',
+    `--name ${shellQuote(flags.name || flags.offer.slice(0, 40))}`,
+    `--keyword ${keyword}`,
+    `--dm ${shellQuote(draft.dm)}`,
+    `--button ${shellQuote(`${draft.buttonLabel}|${flags.link || 'https://your-link.com'}`)}`,
+    `--reply ${shellQuote(draft.commentReply)}`,
+    flags.post ? `--post ${flags.post}` : '',
+    platformOf(flags) === 'facebook' ? '--platform facebook' : '',
+  ].filter(Boolean).join(' \\\n  ');
+
+  if (flags.json) return json({ ...draft, keyword, command });
+
+  heading('Draft');
+  info(c.dim(draft.source === 'claude' ? 'Written by Claude' : 'Written from a template — no logged-in `claude` CLI found'));
+  console.log(`\n${c.dim('DM')}\n${draft.dm}\n`);
+  console.log(`${c.dim('Button')}\n[ ${draft.buttonLabel} ] → ${flags.link || 'https://your-link.com'}\n`);
+  console.log(`${c.dim('Public reply')}\n${draft.commentReply}${draft.replyVariations?.length ? c.dim(`  (+${draft.replyVariations.length} variations)`) : ''}\n`);
+  if (draft.note) info(c.dim(draft.note));
+
+  console.log(`\n${c.dim('Create it with:')}\n\n${command}\n`);
+
+  if (flags.create) {
+    const merged = {
+      ...flags,
+      name: flags.name || flags.offer.slice(0, 40),
+      keyword,
+      dm: draft.dm,
+      button: `${draft.buttonLabel}|${flags.link || 'https://your-link.com'}`,
+      reply: draft.commentReply,
+      'reply-variation': (draft.replyVariations || []).join(';;') || undefined,
+      'dm-variation': (draft.dmVariations || []).join(';;') || undefined,
+    };
+    delete merged.create;
+    await commands.new({ flags: merged });
+  }
+};
+
+/** Shared by `triage` and `answer`. */
+async function triagePost(z, postId, flags) {
+  const { accountId } = await resolveContext(z, flags);
+  const res = await z.getComments(postId, { accountId, limit: flags.limit || 25 });
+  const comments = (res.comments || []).filter((cm) => !cm.from?.isOwner);
+  const verdicts = await triage({
+    comments,
+    context: flags.context,
+    handle: readConfig().accountUsername,
+  });
+  return { accountId, comments, verdicts };
+}
+
+const CATEGORY_COLOR = {
+  'buying-signal': c.green,
+  question: c.cyan,
+  praise: c.dim,
+  spam: c.yellow,
+  negative: c.red,
+  other: c.dim,
+};
+
+commands.triage = async ({ positional, flags }) => {
+  const postId = positional[0];
+  if (!postId) throw new Error('Usage: autodm triage <postId> [--context "what the post is about"]');
+  const z = client();
+  const { comments, verdicts } = await triagePost(z, postId, flags);
+
+  if (flags.json) {
+    return json(
+      verdicts.map((v) => ({
+        ...v,
+        commentId: comments[v.index]?.id,
+        from: comments[v.index]?.from?.username,
+        text: comments[v.index]?.message,
+        autoReplySafe: isAutoReplySafe(v),
+      }))
+    );
+  }
+
+  heading('Comment triage');
+  info(c.dim(verdicts[0]?.source === 'claude' ? 'Read by Claude' : 'Read by keyword rules — no logged-in `claude` CLI found'));
+  console.log('');
+  table(
+    ['from', 'comment', 'read as', 'drafted reply', 'auto?'],
+    verdicts.map((v) => {
+      const cm = comments[v.index] || {};
+      const paint = CATEGORY_COLOR[v.category] || ((s) => s);
+      return [
+        truncate(cm.from?.username || cm.from?.name, 14),
+        truncate(cm.message, 30),
+        paint(v.category),
+        truncate(v.reply || c.dim('—'), 30),
+        isAutoReplySafe(v) ? c.green('yes') : c.dim('no'),
+      ];
+    })
+  );
+  const dmWorthy = verdicts.filter((v) => v.dmWorthy).length;
+  console.log('');
+  if (dmWorthy) info(`${dmWorthy} comment(s) worth a personal DM — see \`autodm dm\` in help.`);
+  info(c.dim('Nothing was posted. `autodm answer <postId>` posts the safe ones.\n'));
+};
+
+commands.answer = async ({ positional, flags }) => {
+  const postId = positional[0];
+  if (!postId) throw new Error('Usage: autodm answer <postId> [--send] [--context "..."]');
+  const z = client();
+  const { accountId, comments, verdicts } = await triagePost(z, postId, flags);
+
+  const safe = verdicts.filter(isAutoReplySafe);
+  const held = verdicts.filter((v) => !isAutoReplySafe(v) && v.reply);
+
+  if (!flags.send) {
+    if (flags.json) return json({ wouldPost: safe.length, held: held.length, safe, held });
+    heading('Ready to post');
+    if (safe.length === 0) {
+      info('Nothing passed the safety bar. Run `autodm triage` to see everything.\n');
+      return;
+    }
+    for (const v of safe) {
+      const cm = comments[v.index] || {};
+      console.log(`  ${c.dim('@' + (cm.from?.username || '?'))}: ${truncate(cm.message, 50)}`);
+      console.log(`  ${c.green('→')} ${v.reply}\n`);
+    }
+    if (held.length) info(c.dim(`${held.length} more drafted but held back (low confidence, spam, or negative).`));
+    info(`\n  Add ${c.bold('--send')} to post these ${safe.length} replies publicly.\n`);
+    return;
+  }
+
+  if (!flags.yes && !flags.json && !(await confirm(`Post ${safe.length} public replies?`))) {
+    return info('Cancelled. Nothing posted.');
+  }
+
+  const posted = [];
+  for (const v of safe) {
+    const cm = comments[v.index];
+    try {
+      await z.replyToComment(postId, { accountId, message: v.reply, commentId: cm.id });
+      posted.push({ commentId: cm.id, reply: v.reply, ok: true });
+    } catch (err) {
+      posted.push({ commentId: cm.id, reply: v.reply, ok: false, error: err.message });
+    }
+  }
+
+  if (flags.json) return json({ posted, held: held.length });
+  heading('Posted');
+  for (const p of posted) {
+    if (p.ok) ok(truncate(p.reply, 60));
+    else fail(`${truncate(p.reply, 40)} — ${p.error}`);
+  }
+  if (held.length) info(c.dim(`\n  ${held.length} held back for you to handle personally.\n`));
 };
 
 // ── Instagram DM extras ───────────────────────────────────────────────────

@@ -85,6 +85,20 @@ Detailed walkthroughs, if they want to read rather than be walked: `docs/INSTAGR
 
 ---
 
+## You do the thinking
+
+Three commands wrap an Ai layer: `write` (draft the DM), `triage` (read the comments),
+`answer` (post the safe replies). Each falls back to keyword rules when no logged-in
+`claude` CLI exists.
+
+**You are already Claude — do not let them shell out to a subprocess of you.** Use
+`--json` to pull the structured input, reason about it yourself, and write your answer
+back through the normal flags. `write --json` gives you the draft plus a ready command;
+`triage --json` gives you every comment with a first-pass read attached.
+
+Never post a public reply without showing it to them first. `isAutoReplySafe()` blocks
+spam, negativity, and low confidence — treat that as a floor, not a target.
+
 ## Step 3 — The first automation
 
 Ask three things, in this order. Do not ask for anything else.

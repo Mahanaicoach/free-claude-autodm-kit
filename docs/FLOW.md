@@ -159,9 +159,35 @@ ever commenting. Up to 4, 80 characters each:
 node bin/autodm.mjs icebreakers set --q "How much is it?|PRICING;;Do you take clients?|CLIENTS"
 ```
 
-## Stage 7 — Run the comment section
+## Stage 7 — Let Claude read the comment section
 
-The automation handles keywords. These are for everything else.
+The automation handles keywords. This handles everything the keyword missed.
+
+```bash
+node bin/autodm.mjs triage <postId>
+```
+
+Sorts every comment into question · buying signal · praise · spam · negative, drafts a
+public reply for each, and flags who deserves a personal DM. **It posts nothing.**
+
+```bash
+node bin/autodm.mjs answer <postId>          # shows what it would post
+node bin/autodm.mjs answer <postId> --send   # posts them
+```
+
+Spam, anything negative, and anything low-confidence are held back for you. That gate is
+deliberate: a wrong auto-reply on a public post isn't recoverable by deleting it.
+
+And to write the DM in the first place:
+
+```bash
+node bin/autodm.mjs write --offer "the 7-day content system" --link https://your-link.com --create
+```
+
+All three use your logged-in `claude` CLI if you have one, and keyword rules if you don't.
+No API key either way.
+
+## Stage 7b — Run the comment section by hand
 
 ```bash
 node bin/autodm.mjs comments <postId>                          # read the thread
@@ -208,6 +234,7 @@ want to build something else on top. Full contract: [FEATURES.md](FEATURES.md).
 ```
 Setup       setup · doctor · connect [instagram|facebook] · accounts
 Automations new · list · show · edit · pause · resume · rm · logs · stats · templates
+Claude      write · triage · answer
 Comments    posts · comments · reply · hide · dm
 DM extras   icebreakers · contacts · webhook
 ```

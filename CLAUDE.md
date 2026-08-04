@@ -52,6 +52,28 @@ Never skip straight to creating an automation. It will fail confusingly.
 - **Never promise delivery.** Instagram sends no delivery receipt. `read` is the closest
   signal there is, and `stats` labels it honestly.
 
+## You are the Ai layer
+
+`lib/brain.mjs` backs three commands — `write`, `triage`, `answer`. Each has two paths: a
+`claude -p` subprocess, and a keyword heuristic for when no logged-in CLI exists.
+
+**When you are the one running this repo, do not shell out to `claude -p`.** Call the
+command with `--json` to get the structured input, then do the reasoning yourself and pass
+your result back through the ordinary flags. You are better at it than a subprocess of
+yourself, and it costs one round trip instead of two.
+
+```bash
+node bin/autodm.mjs triage <postId> --json    # comments + a first-pass read
+node bin/autodm.mjs reply <postId> --comment <id> --message "your reply"
+```
+
+The subprocess path exists for people running the CLI by hand in a terminal. Leave it
+alone; do not "simplify" it away.
+
+`isAutoReplySafe()` in `lib/brain.mjs` is the gate on anything posted publicly without a
+human looking. It refuses spam, anything negative, and low-confidence calls. Do not widen
+it, and never post a public reply on someone's behalf without showing it to them first.
+
 ## Writing the DM for them
 
 They will usually ask you to write it. Good DMs from this system:
@@ -72,6 +94,8 @@ Use `--dry-run --json` to show them the DM before it goes live.
 bin/autodm.mjs      the CLI — every command lives here
 lib/zernio.mjs      thin REST client, one method per endpoint
 lib/validate.mjs    Meta's limits, enforced before the API call
+lib/brain.mjs       the Ai layer — write / triage, with a heuristic fallback
+assets/             social-preview.html is the source; `node assets/render.mjs` rebuilds the png
 templates/*.json    ready-made automations (`autodm templates`)
 docs/INSTAGRAM.md   step-by-step setup, Instagram
 docs/FACEBOOK.md    step-by-step setup, Facebook Pages

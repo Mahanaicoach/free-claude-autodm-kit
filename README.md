@@ -1,4 +1,6 @@
-# AutoDM Kit
+![claude-autodm-kit — Instagram & Facebook comment to DM, set up and run by Claude](assets/social-preview.png)
+
+# claude-autodm-kit
 
 **Someone comments a word on your post. They get a DM with a tappable button. In three
 seconds. For free.**
@@ -15,7 +17,7 @@ No monthly tool. No card. No code you have to read.
 **1.** Open [claude.ai/code](https://claude.ai/code) and clone this repo into it:
 
 ```bash
-git clone https://github.com/Mahanaicoach/autodm-kit && cd autodm-kit
+git clone https://github.com/Mahanaicoach/claude-autodm-kit && cd claude-autodm-kit
 ```
 
 **2.** Say:
@@ -66,6 +68,40 @@ and real delivery receipts. Both are free — two connected accounts are include
 Instagram *and* a Page costs nothing.
 
 Full list: [FEATURES.md](docs/FEATURES.md) · walk-through: [FLOW.md](docs/FLOW.md).
+
+---
+
+## Claude doesn't just set it up. It runs it.
+
+Three commands where Claude does the thinking:
+
+```bash
+node bin/autodm.mjs write --offer "the 7-day content system" --link https://your-link.com
+```
+
+**`write`** drafts the DM, the button label, the public reply, and three reply variations
+from your offer — then hands you the exact command to create it, or creates it with
+`--create`.
+
+```bash
+node bin/autodm.mjs triage <postId>
+```
+
+**`triage`** reads your comment section and sorts it: question, buying signal, praise, spam,
+negative. It drafts a public reply for each and flags who deserves a personal DM. It posts
+nothing.
+
+```bash
+node bin/autodm.mjs answer <postId> --send
+```
+
+**`answer`** posts the replies triage judged safe. Spam, anything negative, and anything
+it wasn't confident about are held back for you — a wrong auto-reply on a public post
+isn't recoverable by deleting it.
+
+**No API key. Ever.** These use your logged-in `claude` CLI if there is one, and fall back
+to keyword rules if there isn't — so the repo works headless either way. When Claude Code
+is the one running the repo, it does the reasoning itself and never shells out.
 
 ---
 

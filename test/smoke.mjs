@@ -11,14 +11,27 @@ import { validateAutomation, validateIceBreakers, lintAutomation, ValidationErro
 import { ROOT } from '../lib/config.mjs';
 
 let passed = 0;
+const pending = [];
+
 function test(name, fn) {
+  const record = (err) => {
+    if (err) {
+      console.log(`  ✗ ${name}\n    ${err.message}`);
+      process.exitCode = 1;
+    } else {
+      passed++;
+      console.log(`  ✓ ${name}`);
+    }
+  };
   try {
-    fn();
-    passed++;
-    console.log(`  ✓ ${name}`);
+    const result = fn();
+    if (result instanceof Promise) {
+      pending.push(result.then(() => record(), record));
+    } else {
+      record();
+    }
   } catch (err) {
-    console.log(`  ✗ ${name}\n    ${err.message}`);
-    process.exitCode = 1;
+    record(err);
   }
 }
 
@@ -132,6 +145,74 @@ test('short contains-keywords are flagged', () => {
   assert.ok(warnings.some((w) => /match almost every comment/.test(w)));
 });
 
+console.log('\nthe Claude layer (fallback path)');
+
+// Force the heuristic path so these run without a logged-in `claude` CLI.
+process.env.AUTODM_NO_CLAUDE = '1';
+const { writeDm, triage, isAutoReplySafe, parseLooseJson } = await import('../lib/brain.mjs');
+
+test('loose JSON survives fences and surrounding prose', () => {
+  assert.deepEqual(parseLooseJson('Sure!\n```json\n{"a":1}\n```\nHope that helps'), { a: 1 });
+  assert.deepEqual(parseLooseJson('[{"index":0}]'), [{ index: 0 }]);
+  assert.equal(parseLooseJson('no json here'), null);
+  assert.equal(parseLooseJson(''), null);
+});
+
+test('the fallback writes a usable, valid automation', async () => {
+  const draft = await writeDm({ offer: 'the pricing guide', link: 'https://x.co', keyword: 'PRICE' });
+  assert.equal(draft.source, 'heuristic');
+  validateAutomation({
+    profileId: 'p', accountId: 'a', name: 'T',
+    dmMessage: draft.dm, keywords: ['PRICE'],
+    buttons: [{ type: 'url', title: draft.buttonLabel, url: 'https://x.co' }],
+    commentReply: draft.commentReply,
+    commentReplyVariations: draft.replyVariations,
+    dmMessageVariations: draft.dmVariations,
+  });
+});
+
+test('button labels are cut at a word, never mid-word', async () => {
+  for (const offer of ['the 7-day content system', 'the pricing guide', 'x', 'the thing']) {
+    const { buttonLabel } = await writeDm({ offer, link: 'https://x.co', keyword: 'K' });
+    assert.ok(buttonLabel.length <= 20, `"${buttonLabel}" is ${buttonLabel.length} chars`);
+    assert.ok(buttonLabel.length >= 6, `"${buttonLabel}" is too short to read`);
+    assert.ok(!/\s$/.test(buttonLabel), `"${buttonLabel}" ends in a space`);
+    if (offer.startsWith('the ') && buttonLabel !== 'Get it') {
+      assert.ok(offer.includes(buttonLabel.replace('Get the ', '')), `"${buttonLabel}" cut a word`);
+    }
+  }
+});
+
+test('the fallback triage reads the obvious cases', async () => {
+  const comments = [
+    { message: 'how much is it?', from: { username: 'a' } },
+    { message: 'this is amazing 🔥', from: { username: 'b' } },
+    { message: 'follow back check my page', from: { username: 'c' } },
+    { message: 'total scam, reported you', from: { username: 'd' } },
+    { message: 'ok', from: { username: 'e' } },
+  ];
+  const [buying, praise, spam, negative, other] = await triage({ comments });
+  assert.equal(buying.category, 'buying-signal');
+  assert.equal(praise.category, 'praise');
+  assert.equal(spam.category, 'spam');
+  assert.equal(negative.category, 'negative');
+  assert.equal(other.category, 'other');
+});
+
+test('auto-reply refuses spam, negativity, and low confidence', () => {
+  assert.equal(isAutoReplySafe({ category: 'negative', reply: 'hi', source: 'claude', confidence: 1 }), false);
+  assert.equal(isAutoReplySafe({ category: 'spam', reply: 'hi', source: 'claude', confidence: 1 }), false);
+  assert.equal(isAutoReplySafe({ category: 'question', reply: 'hi', source: 'claude', confidence: 0.5 }), false);
+  assert.equal(isAutoReplySafe({ category: 'question', reply: '', source: 'claude', confidence: 1 }), false);
+  assert.equal(isAutoReplySafe({ category: 'question', reply: 'hi', source: 'claude', confidence: 0.9 }), true);
+});
+
+test('the keyword fallback only ever auto-replies to praise', () => {
+  assert.equal(isAutoReplySafe({ category: 'praise', reply: 'thanks', source: 'heuristic', confidence: 0.4 }), true);
+  assert.equal(isAutoReplySafe({ category: 'buying-signal', reply: 'sent', source: 'heuristic', confidence: 0.4 }), false);
+  assert.equal(isAutoReplySafe({ category: 'question', reply: 'x', source: 'heuristic', confidence: 0.4 }), false);
+});
+
 console.log('\ntemplates');
 
 for (const file of readdirSync(join(ROOT, 'templates')).filter((f) => f.endsWith('.json'))) {
@@ -142,5 +223,7 @@ for (const file of readdirSync(join(ROOT, 'templates')).filter((f) => f.endsWith
     validateAutomation({ ...t, profileId: 'p', accountId: 'a', platformPostId: t.trigger ? undefined : 'x' });
   });
 }
+
+await Promise.all(pending);
 
 console.log(`\n${passed} checks passed${process.exitCode ? ' (with failures above)' : ''}\n`);
