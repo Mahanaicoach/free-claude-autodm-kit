@@ -1,0 +1,16 @@
+{
+  "name": "autodm-kit",
+  "version": "1.0.0",
+  "description": "Free Instagram comment-to-DM automation you set up by talking to Claude. Zernio backend, zero dependencies.",
+  "type": "module",
+  "bin": { "autodm": "./bin/autodm.mjs" },
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "setup": "node bin/autodm.mjs setup",
+    "doctor": "node bin/autodm.mjs doctor",
+    "stats": "node bin/autodm.mjs stats",
+    "test": "node test/smoke.mjs"
+  },
+  "license": "MIT",
+  "keywords": ["instagram", "automation", "dm", "zernio", "claude", "comment-to-dm"]
+}

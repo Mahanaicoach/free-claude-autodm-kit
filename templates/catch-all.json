@@ -1,0 +1,15 @@
+{
+  "_description": "One safety net across every post: any comment containing a link-ish word gets the bio link.",
+  "_use_when": "People comment \"link?\" on old posts and nobody answers. Account-wide, so leave --post off.",
+  "_note": "Keep the keywords narrow. An account-wide rule with no keywords DMs literally everyone who comments.",
+  "name": "Catch-all — LINK",
+  "keywords": ["LINK", "WHERE", "HOW DO I GET"],
+  "matchMode": "contains",
+  "dmMessage": "Saw your comment 👋 Everything I make lives here — grab whatever's useful.",
+  "buttons": [
+    { "type": "url", "title": "Everything I make", "url": "https://example.com/links" }
+  ],
+  "commentReply": "Sent 📩",
+  "clickTag": "catch-all",
+  "linkTracking": true
+}

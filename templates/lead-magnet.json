@@ -1,0 +1,19 @@
+{
+  "_description": "The classic. Someone comments a keyword on your post, they get the free thing as a tappable button.",
+  "_use_when": "You made a guide, checklist, template, or swipe file and the post says \"comment GUIDE\".",
+  "name": "Lead magnet — GUIDE",
+  "keywords": ["GUIDE"],
+  "matchMode": "contains",
+  "dmMessage": "Hey! Here's the guide I promised in that post 👇\n\nIt's the exact thing I use, no email needed. Tap below and it's yours.",
+  "buttons": [
+    { "type": "url", "title": "Get the guide", "url": "https://example.com/your-guide" }
+  ],
+  "commentReply": "Sent it to your DMs 📩",
+  "commentReplyVariations": [
+    "Just DMed you 📩",
+    "Check your DMs — it's in there 👀",
+    "On its way to your inbox 📩"
+  ],
+  "clickTag": "downloaded-guide",
+  "linkTracking": true
+}

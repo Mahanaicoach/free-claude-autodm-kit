@@ -1,0 +1,15 @@
+{
+  "_description": "Sends a booking link, with a soft second option so it doesn't read as a hard pitch.",
+  "_use_when": "You want calls booked from a post, not from your bio.",
+  "name": "Book a call — CALL",
+  "keywords": ["CALL", "CHAT"],
+  "matchMode": "exact",
+  "dmMessage": "Thanks for reaching out 👋\n\nGrab any slot that works for you below. It's a real conversation, not a pitch — if I'm not the right fit I'll say so and point you somewhere better.",
+  "buttons": [
+    { "type": "url", "title": "Pick a time", "url": "https://example.com/book" },
+    { "type": "postback", "title": "Tell me more first", "payload": "CALL_INFO" }
+  ],
+  "commentReply": "DMed you the link 📩",
+  "clickTag": "opened-calendar",
+  "linkTracking": true
+}

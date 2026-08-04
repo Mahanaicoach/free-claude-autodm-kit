@@ -1,0 +1,15 @@
+{
+  "_description": "Fires when someone replies to your Instagram story with a keyword — not on comments.",
+  "_use_when": "You post a story that says \"reply LINK and I'll send it\". Create with --story.",
+  "_note": "Instagram only. Add --story to scope it to one story id, or leave it off to match replies to any story.",
+  "name": "Story reply — LINK",
+  "trigger": "story_reply",
+  "keywords": ["LINK"],
+  "matchMode": "contains",
+  "dmMessage": "Here you go 👇\n\nThanks for replying — that's the fastest way to get anything from me.",
+  "buttons": [
+    { "type": "url", "title": "Open the link", "url": "https://example.com/thing" }
+  ],
+  "clickTag": "from-story",
+  "linkTracking": true
+}

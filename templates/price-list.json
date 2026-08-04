@@ -1,0 +1,14 @@
+{
+  "_description": "Answers the \"how much?\" comment privately, so your pricing conversation never happens in public.",
+  "_use_when": "You sell something and the comments keep asking for the price.",
+  "name": "Pricing — PRICE",
+  "keywords": ["PRICE", "PRICING", "COST", "HOW MUCH"],
+  "matchMode": "contains",
+  "dmMessage": "Happy to share 👋\n\nFull breakdown is on the page below — packages, what's included, and the turnaround. If none of it fits, tell me what you're working on and I'll point you somewhere useful either way.",
+  "buttons": [
+    { "type": "url", "title": "See pricing", "url": "https://example.com/pricing" }
+  ],
+  "commentReply": "Just sent you the details 📩",
+  "clickTag": "saw-pricing",
+  "linkTracking": true
+}

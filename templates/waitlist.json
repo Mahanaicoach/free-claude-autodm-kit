@@ -1,0 +1,15 @@
+{
+  "_description": "Collect signups before something launches. Two buttons: join now, or ask a question first.",
+  "_use_when": "You're building something and want the list before the launch post.",
+  "name": "Waitlist — ME",
+  "keywords": ["ME", "WAITLIST"],
+  "matchMode": "exact",
+  "dmMessage": "You're early — I like that 👋\n\nI'm opening this to a small first group. Tap below to hold your spot, or hit the second button if you want to ask me something first.",
+  "buttons": [
+    { "type": "url", "title": "Hold my spot", "url": "https://example.com/waitlist" },
+    { "type": "postback", "title": "I have a question", "payload": "WAITLIST_QUESTION" }
+  ],
+  "commentReply": "Spot's yours — check your DMs 📩",
+  "clickTag": "waitlist",
+  "linkTracking": true
+}
